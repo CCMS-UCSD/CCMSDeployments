@@ -1,4 +1,4 @@
-
+USERNAME ?= $(shell bash -c 'read -p "Please enter your username.  To avoid entering this each time please update USERNAME field in the Makefile.credentials file in the directory root to your username.  " pwd; echo $$pwd')
 
 deploy-debug:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
@@ -18,4 +18,3 @@ deploy-production-proteomics:
 	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} \
 	--production-str production \
 	--config ../fabric-production-proteomics.yml
-
