@@ -16,11 +16,11 @@ def update_workflow_xml(fab_connection, workflow_name, workflow_version, product
         verify_workflow_component(os.path.join(workflow_name), component)
 
     if production:
-        fab_connection.sudo("mkdir /ccms/workflows/{}/versions".format(workflow_name), user=fab_connection["env"]["production_user"], pty=True)
-        fab_connection.sudo("mkdir /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version), user=fab_connection["env"]["production_user"], pty=True)
+        fab_connection.sudo("mkdir -p /ccms/workflows/{}/versions".format(workflow_name), user=fab_connection["env"]["production_user"], pty=True)
+        fab_connection.sudo("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version), user=fab_connection["env"]["production_user"], pty=True)
     else:
-        fab_connection.run("mkdir /ccms/workflows/{}/versions".format(workflow_name))
-        fab_connection.run("mkdir /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
+        fab_connection.run("mkdir -p /ccms/workflows/{}/versions".format(workflow_name))
+        fab_connection.run("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
 
     for component in workflow_components:
         update_workflow_component(fab_connection, workflow_name, component, workflow_version=workflow_version, production=production) #Explicitly adding versioned
