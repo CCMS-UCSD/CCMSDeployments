@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<interface id="speclib_add" version="release_1">
+    <download>
+            <!-- <source type="folder" name="convertedspectra/"/> -->
+    </download>
+
+    <!-- View definitions -->
+    <view id="overtime_continuous" label="overtime_continuous">
+            <blockRef id="main" type="overtime_continuous"/>
+    </view>
+
+    <!-- Block definitions -->
+    <block id="overtime_continuous" type="table">
+            <data>
+                    <source type="file" name="continuous_id_growth_rate_table/"/>
+                    <parsers>
+                            <parser type="sortedTabular" sortBy="date" operator="ascending"/>
+                    </parsers>
+
+                    <row>
+                        <column type="text"        field="date" label="Date"        width="12"/>
+                        <column type="text"     field="total_nodes"         label="Total Nodes"            width="12"/>
+                        <column type="text"     field="total_identifications"         label="Identifications"            width="12"/>
+                        <column type="float"     field="id_rate"         label="id_rate"            precision="2"/>
+                    </row>
+            </data>
+
+    </block>
+</interface>
