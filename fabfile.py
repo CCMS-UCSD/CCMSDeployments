@@ -26,8 +26,8 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, productio
         c.run("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
 
     for component in workflow_components:
-        update_workflow_component(c, local_temp_path, component, workflow_version=workflow_version, production=production) #Explicitly adding versioned
-        update_workflow_component(c, local_temp_path, component, production=production) #Adding to active default version
+        update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production=production) #Explicitly adding versioned
+        update_workflow_component(c, local_temp_path, workflow_name, component, production=production) #Adding to active default version
 
 #Uploading the actual tools to the server
 @task
@@ -65,8 +65,8 @@ def rewrite_workflow_component(component, workflow_name, tool_name, workflow_ver
     tree.write(temp)
 
 #TODO: Validate that the xml is also a valid workflow
-def update_workflow_component(c, workflow_filename, component, workflow_version=None, production=False):
-    local = os.path.join(workflow_filename,component)
+def update_workflow_component(c, local_temp_path, workflow_filename, component, workflow_version=None, production=False):
+    local = os.path.join(local_temp_path,component)
     if workflow_version:
         server = '/ccms/workflows/{}/versions/{}/{}'.format(workflow_filename, workflow_version, component)
     else:
