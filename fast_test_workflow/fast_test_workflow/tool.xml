@@ -2,7 +2,8 @@
     <pathSet base="anaconda3/bin">
         <toolPath tool="dummy" path="python3.5"/>
     </pathSet>
-    <pathSet base="fast_test_workflow/release_1">
+
+    <pathSet base="$base">
         <pathVar name="dummy.script" path="dummy.py"/>
     </pathSet>
 

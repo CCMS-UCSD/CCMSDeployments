@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
-<flow name="fast_test_workflow">
+<flow name="fast_tst_workflow">
         <object     name="workflowParameters"/>
-        
+
 
         <action name="begin">
                 <output port="flowParams" object="workflowParameters"/>
