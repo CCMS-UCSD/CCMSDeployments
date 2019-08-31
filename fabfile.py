@@ -60,8 +60,8 @@ def rewrite_workflow_component(component, workflow_name, tool_name, workflow_ver
         root.set('name', workflow_name)
     elif component in ['tool.xml']:
         for path in root.findall('pathSet'):
-            if path.attrib['base'] == '$base':
-                path.attrib['base'] = os.path.join(tool_name,workflow_version)
+            if '$base' in path.attrib['base']:
+                path.attrib['base'] = path.attrib['base'].replace('$base',os.path.join(tool_name,workflow_version))
     tree.write(temp)
 
 #TODO: Validate that the xml is also a valid workflow
