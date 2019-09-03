@@ -35,7 +35,7 @@ def update_tools(c, workflow_name, workflow_version, production_str=""):
     production = production_str=="production"
 
     if production:
-        c.sudo("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version), user=c["env"]["production_user"])
+        c.sudo("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version), user=c["env"]["production_user"], pty=True)
     else:
         c.run("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version))
 
