@@ -34,8 +34,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
     c.local("mkdir -p {}".format(local_temp_path))
 
     for component in workflow_components:
-        if os.path.exists(os.path.join(base_dir, workflow_name, component)):
-            rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
+        rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
 
     if production:
         c.sudo("mkdir -p /ccms/workflows/{}/versions".format(workflow_name), user=c["env"]["production_user"]["workflow"], pty=True)
@@ -45,9 +44,8 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
         c.run("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
 
     for component in workflow_components:
-        if os.path.exists(os.path.join(base_dir, workflow_name, component)):
-            update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production=production, production_user=c["env"]["production_user"]["workflow"]) #Explicitly adding versioned
-            update_workflow_component(c, local_temp_path, workflow_name, component, production=production, production_user=c["env"]["production_user"]["workflow"]) #Adding to active default version
+        update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production=production, production_user=c["env"]["production_user"]["workflow"]) #Explicitly adding versioned
+        update_workflow_component(c, local_temp_path, workflow_name, component, production=production, production_user=c["env"]["production_user"]["workflow"]) #Adding to active default version
 
 #Uploading the actual tools to the server
 @task
@@ -68,7 +66,7 @@ def update_tools(c, workflow_name, workflow_version, base_dir=".", production_st
 #Utility Functions
 
 def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path):
-    local = os.path.join(base_dir, workflow_name, component)
+    local = os.path.join(base_dir, workflow_name,component)
     temp = os.path.join(local_temp_path,component)
     tree = ET.parse(local)
     root = tree.getroot()
