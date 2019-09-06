@@ -9,7 +9,25 @@ import glob
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
 
 @task
-def update_workflow_xml(c, workflow_name, tool_name, workflow_version, production_str=""):
+def update_workflow_from_makefile(c, workflow_name, production_str):
+    params = {}
+    with open(os.path.join(workflow_name,'Makefile')) as f:
+        for l in f:
+            split_line = l.rstrip().split('=')
+            if len(split_line) == 2:
+                params[split_line[0]] = split_line[1]
+    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, production_str)
+    update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, production_str)
+
+@task
+def deploy_all(c, production_str=""):
+    if "workflows" not in c:
+        exit("Deploy all only works for production workflows.")
+    for workflow in c["workflows"]:
+        update_workflow_from_makefile(c, workflow, production_str)
+
+@task
+def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", production_str=""):
     production = production_str=="production"
 
     local_temp_path = os.path.join("/tmp/{}_{}_{}".format(workflow_name, workflow_version, str(uuid.uuid4())))
@@ -17,7 +35,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, productio
 
     for component in workflow_components:
         if os.path.exists(os.path.join(base_dir, workflow_name, component)):
-            rewrite_workflow_component(component, workflow_name, tool_name, workflow_version, local_temp_path)
+            rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
 
     if production:
         c.sudo("mkdir -p /ccms/workflows/{}/versions".format(workflow_name), user=c["env"]["production_user"], pty=True)
@@ -33,7 +51,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, productio
 
 #Uploading the actual tools to the server
 @task
-def update_tools(c, workflow_name, workflow_version, production_str=""):
+def update_tools(c, workflow_name, workflow_version, base_dir=".", production_str=""):
     production = production_str=="production"
 
     if production:
@@ -41,7 +59,7 @@ def update_tools(c, workflow_name, workflow_version, production_str=""):
     else:
         c.run("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version))
 
-    local_path = 'tools/{}/'.format(workflow_name)
+    local_path = '{}/tools/{}/'.format(base_dir, workflow_name)
     final_path = '/data/cluster/tools/{}/{}/'.format(workflow_name, workflow_version)
 
     update_folder(c, local_path, final_path, production=production)
@@ -50,8 +68,8 @@ def update_tools(c, workflow_name, workflow_version, production_str=""):
 
 #Utility Functions
 
-def rewrite_workflow_component(component, workflow_name, tool_name, workflow_version, local_temp_path):
-    local = os.path.join(workflow_name,component)
+def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path):
+    local = os.path.join(base_dir, workflow_name, component)
     temp = os.path.join(local_temp_path,component)
     tree = ET.parse(local)
     root = tree.getroot()

@@ -2,3 +2,5 @@ debug: true
 run:
   warn: true
   echo: true
+workflows:
+  - fast_test_workflow

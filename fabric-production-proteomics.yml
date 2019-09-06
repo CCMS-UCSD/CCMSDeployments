@@ -4,3 +4,5 @@ run:
   echo: true
 env:
   production_user: ccms
+workflows:
+  - fast_test_workflow
