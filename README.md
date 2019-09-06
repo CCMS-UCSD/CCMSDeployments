@@ -11,7 +11,7 @@ Navigate to the `fast_test_workflow` directory and execute one of the following:
   2. ```make deploy-production-gnps``` to deploy to gnps
   3. ```make deploy-production-proteomics``` to deploy to proteomics
   
-# To Deploy a All Workflows for a Server
+# To Deploy All Test Workflows
 
 For proteomics2 (using the default configuration), execute:
 
