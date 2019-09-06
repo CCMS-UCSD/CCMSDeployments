@@ -2,7 +2,7 @@ debug: true
 run:
   warn: true
   echo: true
-env:
-  production_user: gamma
+production:
+  user: gamma
 workflows:
   - fast_test_workflow

@@ -9,28 +9,27 @@ import glob
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
 
 @task
-def update_workflow_from_makefile(c, workflow_name, production_str):
+def update_workflow_from_makefile(c, workflow_name):
     params = {}
     with open(os.path.join(workflow_name,'Makefile')) as f:
         for l in f:
             split_line = l.rstrip().split('=')
             if len(split_line) == 2:
                 params[split_line[0]] = split_line[1]
-    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, production_str)
-    update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, production_str)
+    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
+    update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
 
 @task
-def deploy_all(c, production_str=""):
+def deploy_all(c):
     if "workflows" not in c:
         exit("Deploy all only works for production workflows.")
     for workflow in c["workflows"]:
-        update_workflow_from_makefile(c, workflow, production_str)
+        update_workflow_from_makefile(c, workflow)
 
 @task
 def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", production_str=""):
-    production = production_str=="production"
-
-    production_user = c["env"]["production_user"] if production else None
+    production = "production" in c
+    production_user = c["production"]["user"] if production else None
 
     local_temp_path = os.path.join("/tmp/{}_{}_{}".format(workflow_name, workflow_version, str(uuid.uuid4())))
     c.local("mkdir -p {}".format(local_temp_path))
@@ -54,9 +53,8 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
 #Uploading the actual tools to the server
 @task
 def update_tools(c, workflow_name, workflow_version, base_dir=".", production_str=""):
-    production = production_str=="production"
-
-    production_user = c["env"]["production_user"] if production else None
+    production = "production" in c
+    production_user = c["production"]["user"] if production else None
 
     if production_user:
         c.sudo("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version), user=production_user, pty=True)
