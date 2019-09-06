@@ -13,10 +13,10 @@ Navigate to the `fast_test_workflow` directory and execute one of the following:
   
 # To Deploy a All Workflows for a Server
 
-For proteomics2, execute:
+For proteomics2 (using the default configuration), execute:
 
 ```fab2 -H <username>@proteomics2.ucsd.edu --prompt-for-login-password deploy-all```.
 
-For production {proteomics,gnps} servers, execute:
+For production servers {proteomics,gnps}, execute:
 
-```fab2 -H <username>@<server>.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password deploy-all --config ../fabric-production-<server>.yml```
+```fab2 -H <username>@<server>.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password deploy-all --config fabric-production-<server>.yml```
