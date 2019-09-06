@@ -1,6 +1,14 @@
 debug: true
+
 run:
   warn: true
   echo: true
+
 env:
-  production_user: gamma
+  production_user:
+    tool: gamma
+    workflow: ccms
+    default: ccms
+
+workflows:
+  - fast_test_workflow
