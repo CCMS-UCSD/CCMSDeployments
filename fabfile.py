@@ -2,20 +2,27 @@ from fabric2 import Connection
 from fabric2 import task
 from fabric2 import config
 import os
+import time
 from xml.etree import ElementTree as ET
 import uuid
 import glob
 
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
 
-@task
-def update_workflow_from_makefile(c, workflow_name):
+def read_makefile(workflow_name):
     params = {}
-    with open(os.path.join(workflow_name,'Makefile')) as f:
+    makefile_location = os.path.join(workflow_name,'Makefile')
+    with open(makefile_location) as f:
         for l in f:
             split_line = l.rstrip().split('=')
             if len(split_line) == 2:
                 params[split_line[0]] = split_line[1]
+    params['LAST_UPDATED'] = time.ctime(os.path.getmtime(makefile_location))
+    return params
+
+@task
+def update_workflow_from_makefile(c, workflow_name):
+    params = read_makefile(workflow_name)
     update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
     update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
 
@@ -25,6 +32,14 @@ def deploy_all(c):
         exit("Deploy all only works for production workflows.")
     for workflow in c["workflows"]:
         update_workflow_from_makefile(c, workflow)
+
+@task
+def generate_manifest(c):
+    if "workflows" not in c:
+        exit("Deploy all only works for production workflows.")
+    for workflow in c["workflows"]:
+        params = read_makefile(workflow)
+        print('{}, version: {}, last updated: {}'.format(workflow,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
 
 @task
 def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", production_str=""):
