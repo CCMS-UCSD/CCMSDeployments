@@ -21,37 +21,50 @@ def read_makefile(workflow_name):
     return params
 
 @task
-def update_workflow_from_makefile(c, workflow_name):
+def update_workflow_from_makefile(c, workflow_name, subcomponents):
     params = read_makefile(workflow_name)
-    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
+    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, subcomponents=subcomponents)
     update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
 
 @task
-def deploy_all(c):
+def read_workflows_from_yml(c):
+    workflows_to_deploy = []
     if "workflows" not in c:
         exit("Deploy all only works for production workflows.")
     for workflow in c["workflows"]:
-        update_workflow_from_makefile(c, workflow)
+        workflow_name = None
+        subcomponents = workflow_components
+        if isinstance(workflow,dict):
+            for workflow, xml in workflow.items():
+                workflow_name = workflow
+                subcomponents = xml
+        else:
+            workflow_name = workflow
+        workflows_to_deploy.append((workflow_name, subcomponents))
+    return workflows_to_deploy
+
+@task
+def deploy_all(c):
+    for workflow, subcomponents in read_workflows_from_yml(c):
+        update_workflow_from_makefile(c, workflow, subcomponents)
 
 @task
 def generate_manifest(c):
-    if "workflows" not in c:
-        exit("Deploy all only works for production workflows.")
-    for workflow in c["workflows"]:
+    for workflow, subcomponents in read_workflows_from_yml(c):
+        print(subcomponents)
         params = read_makefile(workflow)
         print('{}, version: {}, last updated: {}'.format(workflow,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
 
 @task
-def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", production_str=""):
+def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=workflow_components):
     production = "production" in c
     production_user = c["production"]["user"] if production else None
 
     local_temp_path = os.path.join("/tmp/{}_{}_{}".format(workflow_name, workflow_version, str(uuid.uuid4())))
     c.local("mkdir -p {}".format(local_temp_path))
 
-    for component in workflow_components:
-        if os.path.exists(os.path.join(base_dir, workflow_name, component)):
-            rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
+    for component in subcomponents:
+        rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
 
     if production_user:
         c.sudo("mkdir -p /ccms/workflows/{}/versions".format(workflow_name), user=production_user, pty=True)
@@ -60,14 +73,13 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
         c.run("mkdir -p /ccms/workflows/{}/versions".format(workflow_name))
         c.run("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
 
-    for component in workflow_components:
-        if os.path.exists(os.path.join(base_dir, workflow_name, component)):
-            update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
-            update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
+    for component in subcomponents:
+        update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
+        update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
 
 #Uploading the actual tools to the server
 @task
-def update_tools(c, workflow_name, workflow_version, base_dir=".", production_str=""):
+def update_tools(c, workflow_name, workflow_version, base_dir="."):
     production = "production" in c
     production_user = c["production"]["user"] if production else None
 
