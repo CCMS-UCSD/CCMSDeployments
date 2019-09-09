@@ -6,3 +6,6 @@ production:
   user: gamma
 workflows:
   - fast_test_workflow
+paths:
+  tools: /data/cluster/tools
+  workflows: /ccms/workflows

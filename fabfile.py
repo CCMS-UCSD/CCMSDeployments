@@ -30,7 +30,7 @@ def update_workflow_from_makefile(c, workflow_name, subcomponents):
 def read_workflows_from_yml(c):
     workflows_to_deploy = []
     if "workflows" not in c:
-        exit("Deploy all only works for production workflows.")
+        exit("Deploy all only works if a list of workflows to deploy is specified.")
     for workflow in c["workflows"]:
         workflow_name = None
         subcomponents = workflow_components
@@ -50,6 +50,7 @@ def deploy_all(c):
 
 @task
 def generate_manifest(c):
+    print(c['connect_kwargs'].keys())
     for workflow, subcomponents in read_workflows_from_yml(c):
         print(subcomponents)
         params = read_makefile(workflow)
@@ -66,12 +67,15 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
     for component in subcomponents:
         rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
 
+    base_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions")
+    versioned_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions", workflow_version)
+
     if production_user:
-        c.sudo("mkdir -p /ccms/workflows/{}/versions".format(workflow_name), user=production_user, pty=True)
-        c.sudo("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version), user=production_user, pty=True)
+        c.sudo("mkdir -p {}".format(base_workflow_path), user=production_user, pty=True)
+        c.sudo("mkdir -p {}".format(versioned_workflow_path), user=production_user, pty=True)
     else:
-        c.run("mkdir -p /ccms/workflows/{}/versions".format(workflow_name))
-        c.run("mkdir -p /ccms/workflows/{}/versions/{}".format(workflow_name, workflow_version))
+        c.run("mkdir -p {}".format(base_workflow_path))
+        c.run("mkdir -p {}".format(versioned_workflow_path))
 
     for component in subcomponents:
         update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
@@ -83,13 +87,14 @@ def update_tools(c, workflow_name, workflow_version, base_dir="."):
     production = "production" in c
     production_user = c["production"]["user"] if production else None
 
-    if production_user:
-        c.sudo("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version), user=production_user, pty=True)
-    else:
-        c.run("mkdir -p /data/cluster/tools/{}/{}".format(workflow_name, workflow_version))
+    final_path = os.path.join(c["paths"]["tools"],workflow_name, workflow_version)
 
-    local_path = '{}/tools/{}/'.format(base_dir, workflow_name)
-    final_path = '/data/cluster/tools/{}/{}/'.format(workflow_name, workflow_version)
+    if production_user:
+        c.sudo("mkdir -p {}".format(final_path), user=production_user, pty=True)
+    else:
+        c.run("mkdir -p {}".format(final_path))
+
+    local_path = os.path.join(base_dir, 'tools', workflow_name)
 
     update_folder(c, local_path, final_path, production_user=production_user)
 
@@ -115,10 +120,11 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
 #TODO: Validate that the xml is also a valid workflow
 def update_workflow_component(c, local_temp_path, workflow_filename, component, workflow_version=None, production_user=None):
     local = os.path.join(local_temp_path,component)
+
     if workflow_version:
-        server = '/ccms/workflows/{}/versions/{}/{}'.format(workflow_filename, workflow_version, component)
+        server = os.path.join(c["paths"]["workflows"], workflow_filename, "versions", workflow_version, component)
     else:
-        server = '/ccms/workflows/{}/{}'.format(workflow_filename, component)
+        server = os.path.join(c["paths"]["workflows"], workflow_filename, "versions", component)
 
     update_file(c, local, server, production_user=production_user)
 
