@@ -57,8 +57,13 @@ def generate_manifest(c):
         print('{}, version: {}, last updated: {}'.format(workflow,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
 
 @task
-def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=workflow_components):
+def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=None, force_update_string='yes'):
+    if not subcomponents:
+        subcomponents = workflow_components
+
+    force_update = force_update_string == 'yes'
     production = "production" in c
+
     production_user = c["production"]["workflow_user"] if production else None
 
     local_temp_path = os.path.join("/tmp/{}_{}_{}".format(workflow_name, workflow_version, str(uuid.uuid4())))
@@ -78,8 +83,10 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
         c.run("mkdir -p {}".format(versioned_workflow_path))
 
     for component in subcomponents:
+        print(component)
+        if force_update:
+            update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
         update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
-        update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
 
 #Uploading the actual tools to the server
 @task
@@ -124,7 +131,7 @@ def update_workflow_component(c, local_temp_path, workflow_filename, component, 
     if workflow_version:
         server = os.path.join(c["paths"]["workflows"], workflow_filename, "versions", workflow_version, component)
     else:
-        server = os.path.join(c["paths"]["workflows"], workflow_filename, "versions", component)
+        server = os.path.join(c["paths"]["workflows"], workflow_filename, component)
 
     update_file(c, local, server, production_user=production_user)
 

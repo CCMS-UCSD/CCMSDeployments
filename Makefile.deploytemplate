@@ -2,6 +2,11 @@ USERNAME ?= $(shell bash -c 'read -p "Please enter your username.  To avoid ente
 
 deploy-debug:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} --force-update-string no \
+	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION}
+
+deploy-debug-update:
+	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
 	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} \
 	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION}
 
