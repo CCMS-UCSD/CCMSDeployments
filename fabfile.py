@@ -59,7 +59,7 @@ def generate_manifest(c):
 @task
 def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=workflow_components):
     production = "production" in c
-    production_user = c["production"]["user"] if production else None
+    production_user = c["production"]["workflow_user"] if production else None
 
     local_temp_path = os.path.join("/tmp/{}_{}_{}".format(workflow_name, workflow_version, str(uuid.uuid4())))
     c.local("mkdir -p {}".format(local_temp_path))
@@ -85,7 +85,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
 @task
 def update_tools(c, workflow_name, workflow_version, base_dir="."):
     production = "production" in c
-    production_user = c["production"]["user"] if production else None
+    production_user = c["production"]["tool_user"] if production else None
 
     final_path = os.path.join(c["paths"]["tools"],workflow_name, workflow_version)
 

@@ -3,7 +3,9 @@ run:
   warn: true
   echo: true
 production:
-  user: gamma
+  tool_user: gamma
+  workflow_user: ccms
+  user: ccms
 workflows:
   - fast_test_workflow
 paths:
