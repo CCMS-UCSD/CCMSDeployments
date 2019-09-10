@@ -2,5 +2,12 @@ debug: true
 run:
   warn: true
   echo: true
-env:
-  production_user: gamma
+production:
+  tool_user: gamma
+  workflow_user: ccms
+  user: ccms
+workflows:
+  - fast_test_workflow
+paths:
+  tools: /data/cluster/tools
+  workflows: /ccms/workflows
