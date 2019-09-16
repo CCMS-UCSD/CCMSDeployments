@@ -23,8 +23,16 @@ def read_makefile(workflow_name):
 @task
 def update_workflow_from_makefile(c, workflow_name, subcomponents):
     params = read_makefile(workflow_name)
-    update_workflow_xml(c, params["WORKFLOW_NAME"], params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name, subcomponents=subcomponents)
-    update_tools(c, params["TOOL_FOLDER_NAME"], params["WORKFLOW_VERSION"], workflow_name)
+    update_all(c, params["WORKFLOW_VERSION"], params.get("WORKFLOW_NAME"), params.get("TOOL_FOLDER_NAME"), workflow_name, subcomponents=subcomponents)
+
+@task
+def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir=".", subcomponents=None, force_update_string='yes'):
+    if workflow_version == None:
+        exit("A workflow cannot be deployed without a version.")
+    if workflow_name:
+        update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
+    if tool_name:
+        update_tools(c, tool_name, workflow_version, base_dir)
 
 @task
 def read_workflows_from_yml(c):
@@ -50,11 +58,14 @@ def deploy_all(c):
 
 @task
 def generate_manifest(c):
-    print(c['connect_kwargs'].keys())
     for workflow, subcomponents in read_workflows_from_yml(c):
-        print(subcomponents)
         params = read_makefile(workflow)
-        print('{}, version: {}, last updated: {}'.format(workflow,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
+        flag = ""
+        if "WORKFLOW_NAME" not in params:
+            flag = " (Tool only)"
+        elif "TOOL_FOLDER_NAME" not in params:
+            flag = " (Workflow only)"
+        print('{}{}, version: {}, last updated: {}'.format(workflow,flag,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
 
 @task
 def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=None, force_update_string='yes'):
@@ -121,7 +132,10 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
     elif component in ['tool.xml']:
         for path in root.findall('pathSet'):
             if '$base' in path.attrib['base']:
-                path.attrib['base'] = path.attrib['base'].replace('$base',os.path.join(tool_name,workflow_version))
+                if tool_name:
+                    path.attrib['base'] = path.attrib['base'].replace('$base',os.path.join(tool_name,workflow_version))
+                else:
+                    exit("Cannot rewrite tool.xml without specifying tool name.")
     tree.write(temp)
 
 #TODO: Validate that the xml is also a valid workflow

@@ -6,7 +6,7 @@ workflows:
   - fast_test_workflow
   - fast_test_workflow:
     - input.xml
-  - fast_test_workflow
+  - fast_test_tools
 paths:
   tools: /data/cluster/tools
   workflows: /ccms/workflows
