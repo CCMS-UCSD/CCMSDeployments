@@ -1,21 +1,24 @@
 USERNAME ?= $(shell bash -c 'read -p "Please enter your username.  To avoid entering this each time please update USERNAME field in the Makefile.credentials file in the directory root to your username.  " pwd; echo $$pwd')
 
+VERSION_INPUT = --workflow-version ${WORKFLOW_VERSION}
+WORKFLOW_INPUT = $(if $(WORKFLOW_NAME),--workflow-name $(WORKFLOW_NAME),)
+TOOL_INPUT = $(if $(TOOL_FOLDER_NAME),--tool-name $(TOOL_FOLDER_NAME),)
+
 deploy-debug:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
-	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} --force-update-string no \
-	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION}
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
+	--force-update-string no
 
 deploy-debug-update:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
-	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} \
-	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION}
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT}
 
 deploy-production-gnps:
 	fab2 -H ${USERNAME}@gnps.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
-	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} \
-	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} --config ../fabric-production-gnps.yml
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
+	--config ../fabric-production-gnps.yml
 
 deploy-production-proteomics:
 	fab2 -H ${USERNAME}@proteomics.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
-	update-workflow-xml --workflow-name ${WORKFLOW_NAME} --tool-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION} \
-	update-tools --workflow-name ${TOOL_FOLDER_NAME} --workflow-version ${WORKFLOW_VERSION}	--config ../fabric-production-proteomics.yml
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
+	--config ../fabric-production-proteomics.yml
