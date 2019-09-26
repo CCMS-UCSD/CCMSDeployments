@@ -6,6 +6,8 @@ import time
 from xml.etree import ElementTree as ET
 import uuid
 import glob
+import json
+import urllib.parse
 
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
 
@@ -33,6 +35,11 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir
         update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
     if tool_name:
         update_tools(c, tool_name, workflow_version, base_dir)
+
+    if force_update_string != 'yes':
+        server_url_base = "https://proteomics2.ucsd.edu/ProteoSAFe/index.jsp?params="
+        workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name, "workflow_version":workflow_version}))
+        print("SUCCESS:\n\n{} updated at:\n\n{}\n\n".format(workflow_name, workflow_url))
 
 @task
 def read_workflows_from_yml(c):
@@ -94,7 +101,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
         c.run("mkdir -p {}".format(versioned_workflow_path))
 
     for component in subcomponents:
-        print(component)
+        # print(component)
         if force_update:
             update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
         update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
@@ -164,8 +171,8 @@ def update_file(c, local_path, final_path, production_user = None):
 def update_folder(c, local_path, final_path, production_user = None):
     #Tar up local folder and upload to temporary space on server and untar
     local_temp_path = os.path.join("/tmp/{}_{}.tar".format(local_path.replace("/", "_"), str(uuid.uuid4())))
-    cmd = "tar -C {} -chvf {} .".format(local_path, local_temp_path)
-    print(cmd)
+    cmd = "tar -C {} -chf {} .".format(local_path, local_temp_path)
+    # print(cmd)
     os.system(cmd)
 
     remote_temp_tar_path = os.path.join("/tmp/{}_{}.tar".format(local_path.replace("/", "_"), str(uuid.uuid4())))
@@ -173,9 +180,9 @@ def update_folder(c, local_path, final_path, production_user = None):
 
     remote_temp_path = os.path.join("/tmp/{}_{}".format(local_path.replace("/", "_"), str(uuid.uuid4())))
     c.run("mkdir {}".format(remote_temp_path))
-    c.run("tar -C {} -xvf {}".format(remote_temp_path, remote_temp_tar_path))
+    c.run("tar -C {} -xf {}".format(remote_temp_path, remote_temp_tar_path))
 
     if production_user:
-        c.sudo('rsync -rlptDv {}/ {}'.format(remote_temp_path, final_path), user=production_user, pty=True)
+        c.sudo('rsync -rlptD {}/ {}'.format(remote_temp_path, final_path), user=production_user, pty=True)
     else:
-        c.run('rsync -rlptDv {}/ {}'.format(remote_temp_path, final_path))
+        c.run('rsync -rlptD {}/ {}'.format(remote_temp_path, final_path))
