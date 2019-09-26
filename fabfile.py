@@ -6,6 +6,8 @@ import time
 from xml.etree import ElementTree as ET
 import uuid
 import glob
+import json
+import urllib.parse
 
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
 
@@ -33,6 +35,11 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir
         update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
     if tool_name:
         update_tools(c, tool_name, workflow_version, base_dir)
+
+    if force_update_string != 'yes':
+        server_url_base = "https://proteomics2.ucsd.edu/ProteoSAFe/index.jsp?params="
+        workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name, "workflow_version":workflow_version}))
+        print("SUCCESS:\n\n{} updated at:\n\n{}\n\n".format(workflow_name, workflow_url))
 
 @task
 def read_workflows_from_yml(c):
