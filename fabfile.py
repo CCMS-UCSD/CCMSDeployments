@@ -58,10 +58,101 @@ def read_workflows_from_yml(c):
         workflows_to_deploy.append((workflow_name, subcomponents))
     return workflows_to_deploy
 
+def read_all_tools(base_dir = '.'):
+    all_tools = {}
+    all_submodules = glob.glob(os.path.join(base_dir, '*'))
+    for submodule in all_submodules:
+        if 'CCMSDeployments' not in submodule and os.path.isdir(submodule):
+            submodule_params = read_makefile(submodule)
+            tool_name = submodule_params.get("TOOL_FOLDER_NAME")
+            workflow_name = submodule_params.get("WORKFLOW_NAME")
+            if workflow_name:
+                workflow_name = os.path.join(submodule.split('/')[1], workflow_name)
+            version = submodule_params["WORKFLOW_VERSION"]
+            if tool_name:
+                all_tools[tool_name] = (version, workflow_name)
+    return all_tools
+
 @task
 def deploy_all(c):
     for workflow, subcomponents in read_workflows_from_yml(c):
         update_workflow_from_makefile(c, workflow, subcomponents)
+
+@task
+def read_dependencies(c, workflow_name, rewrite_string = 'no', base_dir = '.'):
+    tools = read_all_tools('..')
+    rewrite = rewrite_string == 'yes'
+    print('')
+    changes = output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = {}, rewrite = False)
+    print('')
+    if changes and rewrite:
+        output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = {}, rewrite = True)
+
+def output_updates(c, workflow_name = None, tool_name = None, base_dir = '.', tools = None, seen = {}, rewrite = False):
+    changes = False
+    if workflow_name:
+        dependencies = output_tool_dependencies(workflow_name, base_dir)
+        outputs = []
+        for (dependency, version) in dependencies:
+            status = "N/V"
+            if dependency in tools and dependency not in seen:
+                new_version = False
+                local_version, workflow = tools[dependency]
+                seen[dependency] = (new_version,local_version)
+                if version == local_version:
+                    status = "{}".format(version)
+                else:
+                    status = "{}->{}".format(version, local_version)
+                    new_version = True
+                if workflow:
+                    seen = output_updates(c, workflow, dependency, '..', tools, seen, rewrite)
+                outputs.append("\t{} {}".format(dependency, status))
+            elif dependency not in seen:
+                seen[dependency] = (None,None)
+                outputs.append("\tUntracked: {}".format(dependency))
+        print(workflow_name.split('/')[0])
+        for output in outputs:
+            print(output)
+        if rewrite:
+            changes = rewrite_tool_w_new_dependencies(workflow_name, seen, base_dir = base_dir)
+        print('')
+    return seen
+
+def output_tool_dependencies(workflow_name, base_dir = '.'):
+    dependencies = []
+    local = os.path.join(base_dir, workflow_name, 'tool.xml')
+    tree = ET.parse(local)
+    root = tree.getroot()
+    for path in root.findall('pathSet'):
+        if not '$base' in path.attrib['base']:
+            split_full_path = path.attrib['base'].split('/')
+            tool_name = split_full_path[0]
+            if len(split_full_path) >= 2:
+                tool_version = split_full_path[1]
+            else:
+                tool_version = "NV"
+            dependencies.append((tool_name, tool_version))
+    return dependencies
+
+def rewrite_tool_w_new_dependencies(workflow_name, updates, rewrite = False, base_dir = '.'):
+    changes_made = False
+    dependencies = []
+    local = os.path.join(base_dir, workflow_name, 'tool.xml')
+    tree = ET.parse(local)
+    root = tree.getroot()
+    for path in root.findall('pathSet'):
+        if not '$base' in path.attrib['base']:
+            split_full_path = path.attrib['base'].split('/')
+            tool_name = split_full_path[0]
+            if tool_name in updates and updates[tool_name][1]:
+                changes_made = True
+                if len(split_full_path[2:]) == 0:
+                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name][1])
+                else:
+                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name][1], '/'.join(split_full_path[2:]))
+    if changes_made:
+        tree.write(local)
+    return changes_made
 
 @task
 def generate_manifest(c):

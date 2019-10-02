@@ -22,3 +22,11 @@ deploy-production-proteomics:
 	fab2 -H ${USERNAME}@proteomics.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
 	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
 	--config ../fabric-production-proteomics.yml
+
+view-dependencies:
+	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	read-dependencies ${WORKFLOW_INPUT}
+
+update-dependencies:
+	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	read-dependencies ${WORKFLOW_INPUT} --rewrite-string yes
