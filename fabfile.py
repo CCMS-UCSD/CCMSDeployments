@@ -82,41 +82,41 @@ def deploy_all(c):
 def read_dependencies(c, workflow_name, rewrite_string = 'no', base_dir = '.'):
     tools = read_all_tools('..')
     rewrite = rewrite_string == 'yes'
+    print('\nDepenencies for {}:'.format(workflow_name))
+    output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = set(), rewrite = False)
     print('')
-    changes = output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = {}, rewrite = False)
-    print('')
-    if changes and rewrite:
-        output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = {}, rewrite = True)
+    if rewrite:
+        output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = set(), rewrite = True)
 
 def output_updates(c, workflow_name = None, tool_name = None, base_dir = '.', tools = None, seen = {}, rewrite = False):
-    changes = False
     if workflow_name:
         dependencies = output_tool_dependencies(workflow_name, base_dir)
         outputs = []
+
         for (dependency, version) in dependencies:
+
             status = "N/V"
-            if dependency in tools and dependency not in seen:
-                new_version = False
-                local_version, workflow = tools[dependency]
-                seen[dependency] = (new_version,local_version)
-                if version == local_version:
-                    status = "{}".format(version)
+
+            if (dependency, version) not in seen:
+                if dependency in tools:
+                    local_version, workflow = tools[dependency]
+                    if version == local_version:
+                        status = "{}".format(version)
+                    else:
+                        status = "{}->{}".format(version, local_version)
+                        new_version = True
+                    outputs.append("\t{} {}".format(dependency, status))
                 else:
-                    status = "{}->{}".format(version, local_version)
-                    new_version = True
-                if workflow:
-                    seen = output_updates(c, workflow, dependency, '..', tools, seen, rewrite)
-                outputs.append("\t{} {}".format(dependency, status))
-            elif dependency not in seen:
-                seen[dependency] = (None,None)
-                outputs.append("\tUntracked: {}".format(dependency))
-        print(workflow_name.split('/')[0])
-        for output in outputs:
-            print(output)
-        if rewrite:
-            changes = rewrite_tool_w_new_dependencies(workflow_name, seen, base_dir = base_dir)
-        print('')
-    return seen
+                    outputs.append("\t{} untracked".format(dependency))
+
+            seen.add((dependency, version))
+
+        if not rewrite:
+            for output in outputs:
+                print(output)
+                
+        else:
+            rewrite_tool_w_new_dependencies(workflow_name, seen, base_dir = base_dir)
 
 def output_tool_dependencies(workflow_name, base_dir = '.'):
     dependencies = []
@@ -152,7 +152,6 @@ def rewrite_tool_w_new_dependencies(workflow_name, updates, rewrite = False, bas
                     path.attrib['base'] = os.path.join(tool_name, updates[tool_name][1], '/'.join(split_full_path[2:]))
     if changes_made:
         tree.write(local)
-    return changes_made
 
 @task
 def generate_manifest(c):
