@@ -23,8 +23,11 @@ def read_makefile(workflow_name):
     return params
 
 @task
-def update_workflow_from_makefile(c, workflow_name, subcomponents):
+def update_workflow_from_makefile(c, workflow_name, subcomponents, tool_only = False):
     params = read_makefile(workflow_name)
+    workflow_name = params.get("WORKFLOW_NAME")
+    if tool_only:
+        workflow_name = None
     update_all(c, params["WORKFLOW_VERSION"], params.get("WORKFLOW_NAME"), params.get("TOOL_FOLDER_NAME"), workflow_name, subcomponents=subcomponents)
 
 @task
@@ -129,7 +132,7 @@ def output_updates(c, workflow_name = None, tool_name = None, base_dir = '.', to
 
                     if rewrite:
                         if not deployed:
-                            update_workflow_from_makefile(c, workflow, workflow_components)
+                            update_workflow_from_makefile(c, workflow, workflow_components, True)
                             status += " (updated)"
                         else:
                             status += " (already deployed)"
