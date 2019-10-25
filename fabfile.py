@@ -37,7 +37,7 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir
         update_tools(c, tool_name, workflow_version, base_dir)
 
     if force_update_string != 'yes':
-        server_url_base = "https://proteomics2.ucsd.edu/ProteoSAFe/index.jsp?params="
+        server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
         workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name, "workflow_version":workflow_version}))
         print("SUCCESS:\n\n{} updated at:\n\n{}\n\n".format(workflow_name, workflow_url))
 

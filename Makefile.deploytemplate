@@ -4,24 +4,49 @@ VERSION_INPUT = --workflow-version ${WORKFLOW_VERSION}
 WORKFLOW_INPUT = $(if $(WORKFLOW_NAME),--workflow-name $(WORKFLOW_NAME),)
 TOOL_INPUT = $(if $(TOOL_FOLDER_NAME),--tool-name $(TOOL_FOLDER_NAME),)
 
+#Deploys to Proteomics2 without deploying default workflow
 deploy-debug:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
 	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
 	--force-update-string no
 
+#Deploys to Proteomics2 and updates default workflow
 deploy-debug-update:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
 	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT}
 
+
+
+
+#Deploys to GNPS and updates default workflow
 deploy-production-gnps:
 	fab2 -H ${USERNAME}@gnps.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
 	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
 	--config ../fabric-production-gnps.yml
 
+#Deploys to GNPS without deploying default workflow
+deploy-production-gnps-pre:
+	fab2 -H ${USERNAME}@gnps.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
+	--config ../fabric-production-gnps.yml --force-update-string no
+
+
+
+
+#Deploys to Proteomics and updates default workflow
 deploy-production-proteomics:
 	fab2 -H ${USERNAME}@proteomics.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
 	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
 	--config ../fabric-production-proteomics.yml
+  
+#Deploys to Proteomics without deploying default workflow
+deploy-production-proteomics-pre:
+	fab2 -H ${USERNAME}@proteomics.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
+	update-all ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} \
+	--config ../fabric-production-proteomics.yml --force-update-string no
+
+
+#Update and view dependencies
 
 view-dependencies:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \

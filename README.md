@@ -8,8 +8,11 @@
 Navigate to the `fast_test_workflow` directory and execute one of the following:
 
   1. ```make deploy-debug``` to deploy to proteomics2
-  2. ```make deploy-production-gnps``` to deploy to gnps
-  3. ```make deploy-production-proteomics``` to deploy to proteomics
+  1. ```make deploy-debug-update``` to deploy to proteomics2 and update the default
+  2. ```make deploy-production-gnps``` to deploy to gnps and update the default
+  2. ```make deploy-production-gnps-pre``` to deploy to gnps
+  3. ```make deploy-production-proteomics``` to deploy to proteomics and update the default
+  3. ```make deploy-production-proteomics-pre``` to deploy to proteomics
   
 # To Deploy All Test Workflows
 
