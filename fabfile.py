@@ -58,10 +58,135 @@ def read_workflows_from_yml(c):
         workflows_to_deploy.append((workflow_name, subcomponents))
     return workflows_to_deploy
 
+def read_all_tools(base_dir = '.'):
+    all_tools = {}
+    all_submodules = glob.glob(os.path.join(base_dir, '*'))
+    for submodule in all_submodules:
+        if 'CCMSDeployments' not in submodule and os.path.isdir(submodule):
+            submodule_params = read_makefile(submodule)
+            tool_name = submodule_params.get("TOOL_FOLDER_NAME")
+            version = submodule_params["WORKFLOW_VERSION"]
+            if tool_name:
+                all_tools[tool_name] = (version, submodule)
+    return all_tools
+
 @task
 def deploy_all(c):
     for workflow, subcomponents in read_workflows_from_yml(c):
         update_workflow_from_makefile(c, workflow, subcomponents)
+
+@task
+def read_dependencies(c, workflow_name, rewrite_string = 'no', base_dir = '.'):
+    tools = read_all_tools('..')
+    rewrite = rewrite_string == 'yes'
+    output_updates(c, workflow_name, tool_name = None, base_dir = base_dir, tools = tools, seen = {}, rewrite = rewrite)
+    print('')
+
+@task
+def is_on_server(c, tool_name, tool_version):
+    tool_path = os.path.join(c["paths"]["tools"],tool_name, tool_version)
+
+    production = "production" in c
+    production_user = c["production"]["workflow_user"] if production else None
+
+    on_server = False
+
+    if production_user:
+        on_server = c.sudo("test -e {}".format(tool_path), user=production_user, pty=True)
+    else:
+        on_server = c.run("test -e {}".format(tool_path))
+
+    return not on_server.return_code
+
+
+def output_updates(c, workflow_name = None, tool_name = None, base_dir = '.', tools = None, seen = {}, rewrite = False):
+    updates = {}
+    if workflow_name:
+        dependencies = output_tool_dependencies(workflow_name, base_dir)
+        outputs = []
+
+        for (dependency, version) in dependencies:
+
+            status = "N/V"
+            if dependency not in seen or (dependency in seen and seen[dependency] != version):
+                update = False
+                deployed = False
+                if dependency in tools:
+
+                    local_version, workflow = tools[dependency]
+
+                    if version == local_version:
+                        status = "{}".format(version)
+                    else:
+                        update = True
+                        updates[dependency] = local_version
+                        status = "{}->{}".format(version, local_version)
+
+                    if version and is_on_server(c, dependency, local_version):
+                        deployed = True
+
+                    deployed_str = " (deployed)" if deployed else " (needs deployment)"
+
+                    # if rewrite:
+                    #     if not deployed:
+                    #         update_workflow_from_makefile(c, workflow, workflow_components, True)
+                    #         status += " (updated)"
+                    #     else:
+                    #         status += " (already deployed)"
+                    # else:
+                    #     status += deployed_str
+
+                    outputs.append((update or deployed,"\t{} {}".format(dependency, status)))
+                else:
+                    outputs.append((update or deployed,"\t{} untracked".format(dependency)))
+
+            seen[dependency] = version
+
+        if not rewrite:
+            print('\nDepenencies for {}:'.format(workflow_name))
+            for output in outputs:
+                print(output[1])
+        else:
+            print('\nUpdated depenencies for {}:'.format(workflow_name))
+            for output in outputs:
+                if output[0]:
+                    print(output[1])
+            rewrite_tool_w_new_dependencies(workflow_name, updates, base_dir = base_dir)
+
+def output_tool_dependencies(workflow_name, base_dir = '.'):
+    dependencies = []
+    local = os.path.join(base_dir, workflow_name, 'tool.xml')
+    tree = ET.parse(local)
+    root = tree.getroot()
+    for path in root.findall('pathSet'):
+        if not '$base' in path.attrib['base']:
+            split_full_path = path.attrib['base'].split('/')
+            tool_name = split_full_path[0]
+            if len(split_full_path) >= 2:
+                tool_version = split_full_path[1]
+            else:
+                tool_version = "NV"
+            dependencies.append((tool_name, tool_version))
+    return dependencies
+
+def rewrite_tool_w_new_dependencies(workflow_name, updates, rewrite = False, base_dir = '.'):
+    changes_made = False
+    dependencies = []
+    local = os.path.join(base_dir, workflow_name, 'tool.xml')
+    tree = ET.parse(local)
+    root = tree.getroot()
+    for path in root.findall('pathSet'):
+        if not '$base' in path.attrib['base']:
+            split_full_path = path.attrib['base'].split('/')
+            tool_name = split_full_path[0]
+            if tool_name in updates and updates[tool_name]:
+                changes_made = True
+                if len(split_full_path[2:]) == 0:
+                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name])
+                else:
+                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name], '/'.join(split_full_path[2:]))
+    if changes_made:
+        tree.write(local)
 
 @task
 def generate_manifest(c):
