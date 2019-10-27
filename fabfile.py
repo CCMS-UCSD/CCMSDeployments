@@ -8,8 +8,19 @@ import uuid
 import glob
 import json
 import urllib.parse
+import io
 
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
+
+@task
+def read_branch(c, workflow_name):
+    branch_name = None
+    with io.StringIO() as f:
+        c.local('cd {} && git branch | grep \*'.format(workflow_name), out_stream = f)
+        branch = f.getvalue().replace('\n','').replace('* ','')
+        if not ('HEAD detached from' in branch or 'master' in branch):
+            branch_name = branch
+    return branch_name
 
 def read_makefile(workflow_name):
     params = {}
@@ -29,8 +40,15 @@ def update_workflow_from_makefile(c, workflow_name, subcomponents):
 
 @task
 def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir=".", subcomponents=None, force_update_string='yes'):
+    production = "production" in c
+
     if workflow_version == None:
         exit("A workflow cannot be deployed without a version.")
+
+    branch_name = read_branch(c, base_dir)
+    if branch_name and not production:
+        workflow_version = '{}:{}'.format(branch_name.replace(' ','_'), workflow_version)
+
     if workflow_name:
         update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
     if tool_name:
