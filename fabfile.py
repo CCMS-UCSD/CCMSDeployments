@@ -233,6 +233,12 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_
     for component in subcomponents:
         rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, local_temp_path)
 
+    #Performing Workflow Files Validation
+    try:
+        validate_workflow_xml(local_temp_path)
+    except:
+        print("Validation Failed in Exception")
+
     base_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions")
     versioned_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions", workflow_version)
 
@@ -251,6 +257,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_
 
     if not production_user:
         c.run("chmod -R 777 {}".format(os.path.join(c["paths"]["workflows"], workflow_name)))
+
 
 #Uploading the actual tools to the server
 @task
@@ -299,6 +306,19 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
                 else:
                     exit("Cannot rewrite tool.xml without specifying tool name.")
     tree.write(temp)
+
+def validate_workflow_xml(local_temp_path):
+    import workflow_validator
+
+    flow_path = os.path.join(local_temp_path, "flow.xml")
+    binding_path = os.path.join(local_temp_path, "binding.xml")
+    tool_path = os.path.join(local_temp_path, "tool.xml")
+
+    workflow_obj = workflow_validator.Workflow(flow_path, binding_path, tool_path)
+    workflow_obj.validate()
+
+    print(workflow_obj.printerrors())
+
 
 #TODO: Validate that the xml is also a valid workflow
 def update_workflow_component(c, local_temp_path, workflow_filename, component, workflow_version=None, production_user=None):
