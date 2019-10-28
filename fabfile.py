@@ -56,7 +56,7 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow
 
     if force_update_string != 'yes':
         server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
-        workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name, "workflow_version":workflow_version}))
+        workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper(), "workflow_version":workflow_version}))
         print("SUCCESS:\n\n{} updated at:\n\n{}\n\n".format(workflow_name, workflow_url))
 
 @task
