@@ -3,8 +3,8 @@ USERNAME ?= $(shell bash -c 'read -p "Please enter your username.  To avoid ente
 VERSION_INPUT = --workflow-version ${WORKFLOW_VERSION}
 WORKFLOW_INPUT = $(if $(WORKFLOW_NAME),--workflow-name $(WORKFLOW_NAME),)
 TOOL_INPUT = $(if $(TOOL_FOLDER_NAME),--tool-name $(TOOL_FOLDER_NAME),)
-LABEL_INPUT = $(if $(WORKLFLOW_LABEL),--workflow-label $(WORKLFLOW_LABEL),)
-DESCRIPTION_INPUT = $(if $(WORKLFLOW_DESCRIPTION),--workflow-description $(WORKLFLOW_DESCRIPTION),)
+LABEL_INPUT = $(if $(WORKFLOW_LABEL),--workflow-label $(WORKFLOW_LABEL),)
+DESCRIPTION_INPUT = $(if $(WORKFLOW_DESCRIPTION),--workflow-description $(WORKFLOW_DESCRIPTION),)
 
 INPUT_PARAMS = ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} ${LABEL_INPUT} ${DESCRIPTION_INPUT}
 
