@@ -14,7 +14,8 @@
                 </parameter>
         </parameters>
 
-        $description
+        <block label="PlaceholderBlock">
+        </block>
 
-        
+
 </interface>

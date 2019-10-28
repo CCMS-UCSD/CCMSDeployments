@@ -296,6 +296,23 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
             for path in root.findall('workflow-label'):
                 if workflow_label:
                     path.text = workflow_label
+            if workflow_description is not None:
+                description_block = ET.Element("block")
+                root.insert(0, description_block)
+                description_block.attrib["label"] = "Workflow Description"
+                description_row = ET.SubElement(description_block, "row")
+                description_cell = ET.SubElement(description_row, "cell")
+                description_label = ET.SubElement(description_cell, "label")
+                description_label.attrib["prefix"] = "false"
+                description_content = ET.SubElement(description_label, "content")
+                description_content.text = '<div style="5px;padding:1px; border:2px;width:800px;margin-left:auto;margin-right:auto;text-align:center">\
+                    <strong>{}</strong> \
+                    <hr style="margin-top:5px;margin-bottom:5px"> \
+                    {} \
+                    <hr style="margin-top:5px;margin-bottom:5px"> \
+                    <small>Version {} </small> \
+                    </div>'.format(workflow_name, workflow_description, workflow_version)
+
     elif component in ['flow.xml']:
         root.set('name', workflow_name)
     elif component in ['tool.xml']:
