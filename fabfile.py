@@ -8,8 +8,19 @@ import uuid
 import glob
 import json
 import urllib.parse
+import io
 
 workflow_components = ['input.xml', 'binding.xml', 'flow.xml', 'result.xml', 'tool.xml']
+
+@task
+def read_branch(c, workflow_name):
+    branch_name = None
+    with io.StringIO() as f:
+        c.local('cd {} && git branch | grep \*'.format(workflow_name), out_stream = f)
+        branch = f.getvalue().replace('\n','').replace('* ','')
+        if not ('HEAD detached from' in branch or 'master' in branch):
+            branch_name = branch
+    return branch_name
 
 def read_makefile(workflow_name):
     params = {}
@@ -25,14 +36,21 @@ def read_makefile(workflow_name):
 @task
 def update_workflow_from_makefile(c, workflow_name, subcomponents):
     params = read_makefile(workflow_name)
-    update_all(c, params["WORKFLOW_VERSION"], params.get("WORKFLOW_NAME"), params.get("TOOL_FOLDER_NAME"), workflow_name, subcomponents=subcomponents)
+    update_all(c, params["WORKFLOW_VERSION"], params.get("WORKFLOW_NAME"), params.get("TOOL_FOLDER_NAME"), params.get("WORKLFLOW_LABEL"), params.get("WORKLFLOW_DESCRIPTION"), workflow_name, subcomponents=subcomponents)
 
 @task
-def update_all(c, workflow_version, workflow_name=None, tool_name=None, base_dir=".", subcomponents=None, force_update_string='yes'):
+def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow_label=None, workflow_description=None, base_dir=".", subcomponents=None, force_update_string='yes'):
+    production = "production" in c
+
     if workflow_version == None:
         exit("A workflow cannot be deployed without a version.")
+
+    branch_name = read_branch(c, base_dir)
+    if branch_name and not production:
+        workflow_version = '{}:{}'.format(branch_name.replace(' ','_'), workflow_version)
+
     if workflow_name:
-        update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
+        update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
     if tool_name:
         update_tools(c, tool_name, workflow_version, base_dir)
 
@@ -176,15 +194,15 @@ def rewrite_tool_w_new_dependencies(workflow_name, updates, rewrite = False, bas
     tree = ET.parse(local)
     root = tree.getroot()
     for path in root.findall('pathSet'):
-        if not '$base' in path.attrib['base']:
-            split_full_path = path.attrib['base'].split('/')
+        if not '$base' in path.get('base'):
+            split_full_path = path.get('base').split('/')
             tool_name = split_full_path[0]
             if tool_name in updates and updates[tool_name]:
                 changes_made = True
                 if len(split_full_path[2:]) == 0:
-                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name])
+                    path.set('base',os.path.join(tool_name, updates[tool_name]))
                 else:
-                    path.attrib['base'] = os.path.join(tool_name, updates[tool_name], '/'.join(split_full_path[2:]))
+                    path.set('base',os.path.join(tool_name, updates[tool_name], '/'.join(split_full_path[2:])))
     if changes_made:
         tree.write(local)
 
@@ -200,7 +218,7 @@ def generate_manifest(c):
         print('{}{}, version: {}, last updated: {}'.format(workflow,flag,params['WORKFLOW_VERSION'],params['LAST_UPDATED']))
 
 @task
-def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=".", subcomponents=None, force_update_string='yes'):
+def update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, base_dir=".", subcomponents=None, force_update_string='yes'):
     if not subcomponents:
         subcomponents = workflow_components
 
@@ -213,7 +231,7 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, base_dir=
     c.local("mkdir -p {}".format(local_temp_path))
 
     for component in subcomponents:
-        rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path)
+        rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, local_temp_path)
 
     base_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions")
     versioned_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions", workflow_version)
@@ -251,7 +269,7 @@ def update_tools(c, workflow_name, workflow_version, base_dir="."):
 
 #Utility Functions
 
-def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, local_temp_path):
+def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, local_temp_path):
     local = os.path.join(base_dir, workflow_name, component)
     temp = os.path.join(local_temp_path,component)
     tree = ET.parse(local)
@@ -259,13 +277,19 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
     if component in ['input.xml','result.xml']:
         root.set('id', workflow_name)
         root.set('version', workflow_version)
+        if component in ['input.xml']:
+            for path in root.findall('workflow-id'):
+                path.text = workflow_name.upper()
+            for path in root.findall('workflow-label'):
+                if workflow_label:
+                    path.text = workflow_label
     elif component in ['flow.xml']:
         root.set('name', workflow_name)
     elif component in ['tool.xml']:
         for path in root.findall('pathSet'):
-            if '$base' in path.attrib['base']:
+            if '$base' in path.get('base'):
                 if tool_name:
-                    path.attrib['base'] = path.attrib['base'].replace('$base',os.path.join(tool_name,workflow_version))
+                    path.set('base',path.get('base').replace('$base',os.path.join(tool_name,workflow_version)))
                 else:
                     exit("Cannot rewrite tool.xml without specifying tool name.")
     tree.write(temp)
