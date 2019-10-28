@@ -25,12 +25,10 @@ class FlowItem:
 	def validateDeclare(self, declareMap):
 		unDeclared=[];
 		for input in self.input_entries:
-			print(("input " + str(input)))
 			if("object" in input):
 				object = input["object"];
 			if("collection" in input):
 				object = input["collection"];
-			print(("checking delcaration for " + input["port"]))
 			if not (object in declareMap):
 				unDeclared.append(object);
 		return unDeclared;
@@ -99,8 +97,8 @@ class Workflow:
 		self.createaccessmaps()
 
 	def printerrors(self):
-		print("======================Error List==============================")
-		logging.debug("======================Error List==============================")
+		print("======================Workflow XML Error List==============================")
+		logging.debug("======================Workflow XML Error List==============================")
 		for error_item in self.error_list:
 			print(error_item)
 			logging.debug(error_item)
@@ -113,8 +111,6 @@ class Workflow:
 		for binding in self.binding_list:
 			binding_tool_map[binding.toolname] = binding
 			binding_flow_map[binding.flowname] = binding
-
-		print(binding_flow_map)
 
 		self.binding_tool_map = binding_tool_map
 		self.binding_flow_map = binding_flow_map
@@ -134,14 +130,13 @@ class Workflow:
 
 	#create lookup map for flow objects and collections declaration
 	def createFlowDeclareMap(self, flow_xml_filename):
-		declarations = set();
-		tree = ET.parse(flow_xml_filename);
-		root = tree.getroot();
+		declarations = set()
+		tree = ET.parse(flow_xml_filename)
+		root = tree.getroot()
 		for child in root:
 			if child.tag=="object" or child.tag=="collection":
-				print("declaration " + "\t" +  str(child.attrib["name"]));
-				declarations.add(child.attrib["name"]);
-		return declarations;
+				declarations.add(child.attrib["name"])
+		return declarations
 
 	#Parsing the Flow.xml
 	def parseflow(self, flow_xml_filename):
@@ -152,7 +147,6 @@ class Workflow:
 		for child in root:
 			#Looking for only actions
 			if(child.tag == "action"):
-				print(child.tag + "\t" + str(child.attrib))
 
 				#Constructing parameters for flow
 				stage_name = child.attrib["name"]
@@ -161,13 +155,10 @@ class Workflow:
 
 				#we can now create input and output for each flow object
 				for dataflow in child:
-					print(dataflow.tag)
 					if dataflow.tag == "input":
 						input_entries.append(dataflow.attrib)
-						print(dataflow.attrib)
 					if dataflow.tag == "output":
 						output_entries.append(dataflow.attrib)
-						print(dataflow.attrib)
 
 				flow_item = FlowItem(stage_name, input_entries, output_entries)
 				flows_list.append(flow_item)
@@ -185,18 +176,14 @@ class Workflow:
 		#First Getting All Tool Paths
 		tool_path_present = {}
 		for child in root:
-			print(child.tag + "\t" + str(child.attrib))
 			if(child.tag == "pathSet"):
 				for toolPathItem in child:
 					if toolPathItem.tag == "toolPath":
 						toolname = toolPathItem.attrib["tool"]
 						if toolname in tool_path_present:
-							print("Tool Redefinition");
 							self.error_list.append("Tool Path Redefinition in Tool.xml: " + toolname)
 						else:
 							tool_path_present[toolname] = child.attrib["base"] + "/" + toolPathItem.attrib["path"]
-
-		print(tool_path_present)
 
 		#Getting actual tool input and outputs
 		for child in root:
@@ -233,7 +220,6 @@ class Workflow:
 		root = tree.getroot()
 
 		for child in root :
-			print(child.tag + "\t" + str(child.attrib))
 			if child.tag == "bind":
 				flow_name = child.attrib["action"]
 
@@ -274,8 +260,6 @@ class Workflow:
 				output_errors.append("Port in binding not found in flow: " + flow_item.stagename)
 
 		#Checking Binding Output
-		print("CHECKING OUTPUT")
-
 		for binding_output in binding_output_list:
 			binding_port_value = binding_output["port"]
 			#Check if this is present
