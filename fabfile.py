@@ -234,7 +234,10 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_
         rewrite_workflow_component(component, base_dir, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, local_temp_path)
 
     #Performing Workflow Files Validation
-    validate_workflow_xml(local_temp_path)
+    try:
+        validate_workflow_xml(local_temp_path)
+    except:
+        print("Validation Failed in Exception")
 
     base_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions")
     versioned_workflow_path = os.path.join(c["paths"]["workflows"], workflow_name, "versions", workflow_version)
