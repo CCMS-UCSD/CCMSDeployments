@@ -6,8 +6,28 @@ These are the utility scripts/make files to get a deployment working for CCMS wo
 
 1. Create a new repository to hold your workflows (e.g. GNPS_Workflows or Proteomics_Workflows).
 1. Import CCMSDeployments as a submodule (git submodule add https://github.com/CCMS-UCSD/CCMSDeployments.git)
-1. Link the following files into the root folder: fabfile.py, Makefile.deploymenttemplate, fabric-production-gnps.yml, fabric-production-proteomics.yml, fabric.yml
-1. Create a Makefile based upon the fast_test_workflow/Makefile for each workflow. Specify the specific workflow name, tool folder, and Version
+1. Link the following files into the root folder: fabfile.py, Makefile.deploytemplate and create yml files similar to the following for each server (or just copy from fabric-production-gnps.yml, fabric-production-proteomics.yml, fabric.yml as examples)
+
+ ```
+debug: true    # leave this alone
+
+run:           #leave this alone
+  warn: true 
+  echo: true 
+  
+production:    # only add this section if you intend to deploy with sudo
+  tool_user: gamma 
+  workflow_user: ccms
+  user: ccms
+  
+workflows:     # workflows to be deployed
+  - fast_test_workflow
+  
+paths:         # paths for tools and workflows on the server to be deployed to
+  tools: /data/cluster/tools
+  workflows: /ccms/workflows
+ ```
+
 1. Create a Makefile.credentials with the USERNAME key for your username credentials on the particular server in the root folder (do not check this in)
 
 ## To Deploy a Single Test Workflow
