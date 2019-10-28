@@ -11,7 +11,7 @@ These are the utility scripts/make files to get a deployment working for CCMS wo
  ```
 debug: true    # leave this alone
 
-run:           #leave this alone
+run:           # leave this alone
   warn: true 
   echo: true 
   
