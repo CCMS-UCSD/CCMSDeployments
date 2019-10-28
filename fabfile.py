@@ -18,7 +18,7 @@ def read_branch(c, workflow_name):
     with io.StringIO() as f:
         c.local('cd {} && git branch | grep \*'.format(workflow_name), out_stream = f)
         branch = f.getvalue().replace('\n','').replace('* ','')
-        if not ('HEAD detached from' in branch or 'master' in branch):
+        if not ('HEAD detached' in branch or 'master' in branch):
             branch_name = branch
     return branch_name
 
@@ -305,13 +305,13 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
                 description_label = ET.SubElement(description_cell, "label")
                 description_label.attrib["prefix"] = "false"
                 description_content = ET.SubElement(description_label, "content")
-                description_content.text = '<div style="5px;padding:1px; border:2px;width:800px;margin-left:auto;margin-right:auto;text-align:center">\
+                description_content.text = '<div style="5px;padding:1px; border:2px;width:800px;margin-left:10px;margin-right:10px;text-align:left">\
                     <strong>{}</strong> \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
                     {} \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
                     <small>Version {} </small> \
-                    </div>'.format(workflow_name, workflow_description, workflow_version)
+                    </div>'.format(workflow_label if workflow_label else workflow_name.upper(), workflow_description, workflow_version)
 
     elif component in ['flow.xml']:
         root.set('name', workflow_name)
