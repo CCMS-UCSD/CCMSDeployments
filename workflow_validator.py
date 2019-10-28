@@ -7,7 +7,7 @@ import os
 import xml.etree.ElementTree as ET
 import logging
 
-logging.basicConfig(filename='example.log',format = "%(levelname) -10s %(module)s:%(lineno)s %(message)s", level = logging.DEBUG)
+logging.basicConfig(filename='validation.log',format = "%(levelname) -10s %(module)s:%(lineno)s %(message)s", level = logging.DEBUG)
 
 class FlowItem:
 	def __init__(self, stagename, input_entries, output_entries):
@@ -26,12 +26,12 @@ class FlowItem:
 	def validateDeclare(self, declareMap):
 		unDeclared=[];
 		for input in self.input_entries:
-			print "input " + str(input);
-			if(input.has_key("object")):
+			print(("input " + str(input)))
+			if("object" in input):
 				object = input["object"];
-			if(input.has_key("collection")):
+			if("collection" in input):
 				object = input["collection"];
-			print "checking delcaration for " + input["port"];
+			print(("checking delcaration for " + input["port"]))
 			if not (object in declareMap):
 				unDeclared.append(object);
 		return unDeclared;
@@ -88,22 +88,22 @@ class Workflow:
 	def __init__(self, flow_xml_filename, binding_xml_name, tool_xml_name):
 		self.error_list = []
 		self.exemptflownames = ["begin", "end"]
-		self.declarations = self.createFlowDeclareMap(flow_xml_filename);
-                print "Parsing flow.xml"
+		self.declarations = self.createFlowDeclareMap(flow_xml_filename)
+		print("Parsing flow.xml")
 		self.flows_list = self.parseflow(flow_xml_filename)
-                print "Parsing tool.xml"
+		print("Parsing tool.xml")
 		self.tools_list = self.parsetool(tool_xml_name)
-                print "Parsing binding.xml"
+		print("Parsing binding.xml")
 		self.binding_list = self.parseBinding(binding_xml_name)
 
 
 		self.createaccessmaps()
 
 	def printerrors(self):
-		print "======================Error List=============================="
+		print("======================Error List==============================")
 		logging.debug("======================Error List==============================")
 		for error_item in self.error_list:
-			print error_item
+			print(error_item)
 			logging.debug(error_item)
 
 	#Creating easy lookups for binding objects
@@ -115,7 +115,7 @@ class Workflow:
 			binding_tool_map[binding.toolname] = binding
 			binding_flow_map[binding.flowname] = binding
 
-		print binding_flow_map
+		print(binding_flow_map)
 
 		self.binding_tool_map = binding_tool_map
 		self.binding_flow_map = binding_flow_map
@@ -140,7 +140,7 @@ class Workflow:
 		root = tree.getroot();
 		for child in root:
 			if child.tag=="object" or child.tag=="collection":
-				print "declaration " + "\t" +  str(child.attrib["name"]);
+				print("declaration " + "\t" +  str(child.attrib["name"]));
 				declarations.add(child.attrib["name"]);
 		return declarations;
 
@@ -153,7 +153,7 @@ class Workflow:
 		for child in root:
 			#Looking for only actions
 			if(child.tag == "action"):
-				print child.tag + "\t" + str(child.attrib)
+				print(child.tag + "\t" + str(child.attrib))
 
 				#Constructing parameters for flow
 				stage_name = child.attrib["name"]
@@ -162,13 +162,13 @@ class Workflow:
 
 				#we can now create input and output for each flow object
 				for dataflow in child:
-					print dataflow.tag
+					print(dataflow.tag)
 					if dataflow.tag == "input":
 						input_entries.append(dataflow.attrib)
-						print dataflow.attrib
+						print(dataflow.attrib)
 					if dataflow.tag == "output":
 						output_entries.append(dataflow.attrib)
-						print dataflow.attrib
+						print(dataflow.attrib)
 
 				flow_item = FlowItem(stage_name, input_entries, output_entries)
 				flows_list.append(flow_item)
@@ -186,18 +186,18 @@ class Workflow:
 		#First Getting All Tool Paths
 		tool_path_present = {}
 		for child in root:
-			print child.tag + "\t" + str(child.attrib)
+			print(child.tag + "\t" + str(child.attrib))
 			if(child.tag == "pathSet"):
 				for toolPathItem in child:
 					if toolPathItem.tag == "toolPath":
 						toolname = toolPathItem.attrib["tool"]
 						if toolname in tool_path_present:
-							print "Tool Redefinition";
+							print("Tool Redefinition");
 							self.error_list.append("Tool Path Redefinition in Tool.xml: " + toolname)
 						else:
 							tool_path_present[toolname] = child.attrib["base"] + "/" + toolPathItem.attrib["path"]
 
-		print tool_path_present
+		print(tool_path_present)
 
 		#Getting actual tool input and outputs
 		for child in root:
@@ -234,7 +234,7 @@ class Workflow:
 		root = tree.getroot()
 
 		for child in root :
-			print child.tag + "\t" + str(child.attrib)
+			print(child.tag + "\t" + str(child.attrib))
 			if child.tag == "bind":
 				flow_name = child.attrib["action"]
 
@@ -270,18 +270,18 @@ class Workflow:
 			binding_port_value = binding_input["port"]
 			#Check if this is present
 			if flow_item.portpresent(True, binding_port_value):
-				print "PORT FOUND IN INPUT FLOW "  + flow_item.stagename
+				print("PORT FOUND IN INPUT FLOW "  + flow_item.stagename)
 			else:
 				output_errors.append("Port in binding not found in flow: " + flow_item.stagename)
 
 		#Checking Binding Output
-		print "CHECKING OUTPUT"
+		print("CHECKING OUTPUT")
 
 		for binding_output in binding_output_list:
 			binding_port_value = binding_output["port"]
 			#Check if this is present
 			if flow_item.portpresent(False, binding_port_value):
-				print "PORT FOUND IN OUTPUT FLOW " + flow_item.stagename
+				print("PORT FOUND IN OUTPUT FLOW " + flow_item.stagename)
 			else:
 				output_errors.append("Port in binding not found in flow: " + flow_item.stagename)
 		return output_errors
@@ -299,7 +299,7 @@ class Workflow:
 			binding_requirement_name = binding_input["requirement"]
 			#Check if this is present
 			if tool_item.parameterpresent(True, binding_requirement_name):
-				print "INPUT FOUND IN INPUT Tool "  + tool_item.toolname + " " + binding_requirement_name
+				print("INPUT FOUND IN INPUT Tool "  + tool_item.toolname + " " + binding_requirement_name)
 			else:
 				output_errors.append("Tool parameter in binding: " + binding_requirement_name + " not found in tool: " + tool_item.toolname)
 
@@ -352,7 +352,7 @@ class Workflow:
 
 
 def usage():
-	print "<workflow folder>"
+	print("<workflow folder>")
 
 
 
