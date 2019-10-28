@@ -13,4 +13,8 @@
                         <validator type="email"/>
                 </parameter>
         </parameters>
+
+        $description
+
+        
 </interface>
