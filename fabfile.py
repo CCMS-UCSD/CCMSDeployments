@@ -305,8 +305,8 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
                 description_label = ET.SubElement(description_cell, "label")
                 description_label.attrib["prefix"] = "false"
                 description_content = ET.SubElement(description_label, "content")
-                description_content.text = '<div style="5px;padding:1px; border:2px;width:800px;margin-left:10px;margin-right:10px;text-align:left">\
-                    <strong>{}</strong> \
+                description_content.text = '<div style="5px;padding:1px; border:2px;margin-left:8%;margin-right:8%;text-align:left">\
+                    <br><strong>{}</strong> \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
                     {} \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
