@@ -13,4 +13,9 @@
                         <validator type="email"/>
                 </parameter>
         </parameters>
+
+        <block label="PlaceholderBlock">
+        </block>
+
+
 </interface>
