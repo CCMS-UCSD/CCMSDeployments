@@ -50,3 +50,5 @@ For proteomics2 (using the default configuration), execute:
 For production servers {proteomics,gnps}, execute:
 
 ```fab2 -H <username>@<server>.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password deploy-all --config fabric-production-<server>.yml```
+
+## Testing Workflows
