@@ -13,6 +13,7 @@ import pandas as pd
 from import_params import filter_params
 from import_params import reformat_params
 from import_params import import_params_to_dict
+from regression_tests import test_view_counts
 
 def invoke_workflow(credentials, parameters):
     s = requests.Session()
@@ -87,14 +88,6 @@ def wait_for_workflow_finish(task_id, max_time, credentials):
             time.sleep(1)
 
     return json_obj["status"]
-
-# TODO: Implement this appropriately
-#import regression_tests
-def test_regression(old_task_id, new_task_id, workflow_name, server_url):
-    #if workflow_name == "METABOLOMICS-SNETS-V2":
-    #    return regression_tests.test_snet_v2(old_task_id, new_task_id, server_url)
-    return True
-    
 
 import argparse
 
@@ -186,7 +179,15 @@ def main():
 
             task_list.append(new_task_id)
 
-            regression_test_candidates.append((task_id, new_task_id, param_object["workflow"][0], credentials['server_url']))             
+            # These are the views we will test for consistency in the count of rows
+            for regression_count_view in row["regressioncountviews"].split(";"):
+                # Creating Regression candidate
+                regression_candidate = {}
+                regression_candidate["old_task"] = task_id
+                regression_candidate["new_task"] = new_task_id
+                regression_candidate["view_name"] = task_id
+
+                regression_test_candidates.append(regression_candidate)
 
     time.sleep(60)
 
@@ -198,10 +199,7 @@ def main():
 
     # Regression Tests
     for regression_pair in regression_test_candidates:
-        old_task_id = regression_pair[0]
-        new_task_id = regression_pair[1]
-        workflow_name = regression_pair[2]
-        server_url = regression_pair[3]
+        server_url = credentials['server_url']
         if not test_regression(old_task_id, new_task_id, workflow_name, server_url):
             print("Regression test failed", old_task_id, new_task_id, workflow_name, server_url)
             output_failures_dict[new_task_id] = "Regression Failure"
