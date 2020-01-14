@@ -121,6 +121,10 @@ def main():
         credentials["username"] = args.credential_username
         credentials["password"] = args.credential_password
 
+        if credentials["username"] is None:
+            print("Please Enter Username")
+            return 1
+
     regression_test_candidates = []
     task_list = []
 
