@@ -96,7 +96,7 @@ def main():
     parser.add_argument('--credentials_file', default=None, help="Credentials JSON to log on")
     parser.add_argument('--credential_username', default=None, help="Credentials Username")
     parser.add_argument('--credential_password', default=None, help="Credentials Password")
-    parser.add_argument('--credential_server', default="gnps.ucsd.edu", help="Credentials Password")
+    parser.add_argument('--credential_server', default="proteomics3.ucsd.edu", help="Credentials Password")
     parser.add_argument('--wait_time', default=3600, type=int, help="Seconds to wait for completion")
     parser.add_argument('--workflow_json', nargs="+", help="Set of json files to test")
     parser.add_argument('--workflow_task', nargs="+", help="Set of workflow tasks to test")
