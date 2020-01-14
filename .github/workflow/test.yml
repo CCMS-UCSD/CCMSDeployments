@@ -1,0 +1,37 @@
+name: proteomics3-workflow-test
+
+on:
+  push:
+    branches:
+      - master
+      - workflow-testing
+  schedule:
+   - cron:  '*/60 * * * *'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.7]
+
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install xmltodict
+        pip install requests
+    - name: Run Tests
+      run: |
+        python submit_test_job_batch.py --credential_username ${{ secrets.CCMS_TESTUSER_USERNAME }} \
+        --credential_password ${{ secrets.CCMS_TESTUSER_PASSWORD }} \
+        --workflow_task_file ../fast_test_workflow/test-integration-workflow/test_tasks.tsv
