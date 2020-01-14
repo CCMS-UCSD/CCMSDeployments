@@ -9,11 +9,10 @@ on:
    - cron:  '*/60 * * * *'
 
 jobs:
-  build:
-
+  workflow-test:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      max-parallel: 1
       matrix:
         python-version: [3.7]
 
@@ -35,4 +34,5 @@ jobs:
       run: |
         python ./testing-utilities/submit_test_job_batch.py --credential_username ${{ secrets.CCMS_TESTUSER_USERNAME }} \
         --credential_password ${{ secrets.CCMS_TESTUSER_PASSWORD }} \
+        --credential_server proteomics3.ucsd.edu \
         --workflow_task_file fast_test_workflow/test-integration-workflow/test_tasks.tsv

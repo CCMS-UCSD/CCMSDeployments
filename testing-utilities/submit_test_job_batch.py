@@ -13,6 +13,7 @@ import pandas as pd
 from import_params import filter_params
 from import_params import reformat_params
 from import_params import import_params_to_dict
+from regression_tests import test_view_counts
 
 def invoke_workflow(credentials, parameters):
     s = requests.Session()
@@ -88,14 +89,6 @@ def wait_for_workflow_finish(task_id, max_time, credentials):
 
     return json_obj["status"]
 
-# TODO: Implement this appropriately
-#import regression_tests
-def test_regression(old_task_id, new_task_id, workflow_name, server_url):
-    #if workflow_name == "METABOLOMICS-SNETS-V2":
-    #    return regression_tests.test_snet_v2(old_task_id, new_task_id, server_url)
-    return True
-    
-
 import argparse
 
 def main():
@@ -103,7 +96,7 @@ def main():
     parser.add_argument('--credentials_file', default=None, help="Credentials JSON to log on")
     parser.add_argument('--credential_username', default=None, help="Credentials Username")
     parser.add_argument('--credential_password', default=None, help="Credentials Password")
-    parser.add_argument('--credential_server', default="gnps.ucsd.edu", help="Credentials Password")
+    parser.add_argument('--credential_server', default="proteomics3.ucsd.edu", help="Credentials Password")
     parser.add_argument('--wait_time', default=3600, type=int, help="Seconds to wait for completion")
     parser.add_argument('--workflow_json', nargs="+", help="Set of json files to test")
     parser.add_argument('--workflow_task', nargs="+", help="Set of workflow tasks to test")
@@ -186,7 +179,20 @@ def main():
 
             task_list.append(new_task_id)
 
-            regression_test_candidates.append((task_id, new_task_id, param_object["workflow"][0], credentials['server_url']))             
+            # These are the views we will test for consistency in the count of rows
+            regression_views = []
+            try:
+                regression_views = row["regressioncountviews"].split(";")
+            except:
+                regression_views = []
+            for regression_count_view in regression_views:
+                # Creating Regression candidate
+                regression_candidate = {}
+                regression_candidate["old_task"] = task_id
+                regression_candidate["new_task"] = new_task_id
+                regression_candidate["view_name"] = regression_count_view
+
+                regression_test_candidates.append(regression_candidate)
 
     time.sleep(60)
 
@@ -197,14 +203,13 @@ def main():
     output_failures_dict = {}
 
     # Regression Tests
-    for regression_pair in regression_test_candidates:
-        old_task_id = regression_pair[0]
-        new_task_id = regression_pair[1]
-        workflow_name = regression_pair[2]
-        server_url = regression_pair[3]
-        if not test_regression(old_task_id, new_task_id, workflow_name, server_url):
-            print("Regression test failed", old_task_id, new_task_id, workflow_name, server_url)
-            output_failures_dict[new_task_id] = "Regression Failure"
+    for regression_candidate in regression_test_candidates:
+        server_url = credentials['server_url']
+        if not test_view_counts(regression_candidate["old_task"], \
+            regression_candidate["new_task"], 
+            server_url, regression_candidate["view_name"]):
+            print("Regression test failed", regression_candidate["old_task"], regression_candidate["new_task"], server_url)
+            output_failures_dict[regression_candidate["new_task"]] = "Regression Failure"
 
     # Removing Tasks
     for task_id in task_list:
