@@ -35,4 +35,4 @@ jobs:
       run: |
         python ./testing-utilities/submit_test_job_batch.py --credential_username ${{ secrets.CCMS_TESTUSER_USERNAME }} \
         --credential_password ${{ secrets.CCMS_TESTUSER_PASSWORD }} \
-        --workflow_task_file ../fast_test_workflow/test-integration-workflow/test_tasks.tsv
+        --workflow_task_file fast_test_workflow/test-integration-workflow/test_tasks.tsv
