@@ -30,6 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install xmltodict
         pip install requests
+        pip install pandas
     - name: Run Tests
       run: |
         python ./testing-utilities/submit_test_job_batch.py --credential_username ${{ secrets.CCMS_TESTUSER_USERNAME }} \
