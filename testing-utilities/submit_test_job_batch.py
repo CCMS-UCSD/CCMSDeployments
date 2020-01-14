@@ -98,10 +98,12 @@ def test_regression(old_task_id, new_task_id, workflow_name, server_url):
 
 import argparse
 
-
 def main():
     parser = argparse.ArgumentParser(description='Run tests in batch mode')
     parser.add_argument('--credentials_file', default=None, help="Credentials JSON to log on")
+    parser.add_argument('--credential_username', default=None, help="Credentials Username")
+    parser.add_argument('--credential_password', default=None, help="Credentials Password")
+    parser.add_argument('--credential_server', default="gnps.ucsd.edu", help="Credentials Password")
     parser.add_argument('--wait_time', default=3600, type=int, help="Seconds to wait for completion")
     parser.add_argument('--workflow_json', nargs="+", help="Set of json files to test")
     parser.add_argument('--workflow_task', nargs="+", help="Set of workflow tasks to test")
@@ -115,12 +117,11 @@ def main():
         credentials = json.loads(open(credentials_file).read())
     else:
         credentials = {}
-        credentials["server_url"] = ""
-        credentials["username"] = ""
-        credentials["password"] = ""
+        credentials["server_url"] = args.credential_server
+        credentials["username"] = args.credential_username
+        credentials["password"] = args.credential_password
 
     regression_test_candidates = []
-
     task_list = []
 
     # Processing JSON Tests
