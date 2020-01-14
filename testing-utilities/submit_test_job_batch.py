@@ -180,7 +180,12 @@ def main():
             task_list.append(new_task_id)
 
             # These are the views we will test for consistency in the count of rows
-            for regression_count_view in row["regressioncountviews"].split(";"):
+            regression_views = []
+            try:
+                regression_views = row["regressioncountviews"].split(";")
+            except:
+                regression_views = []
+            for regression_count_view in regression_views:
                 # Creating Regression candidate
                 regression_candidate = {}
                 regression_candidate["old_task"] = task_id
