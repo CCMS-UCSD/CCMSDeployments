@@ -185,7 +185,7 @@ def main():
                 regression_candidate = {}
                 regression_candidate["old_task"] = task_id
                 regression_candidate["new_task"] = new_task_id
-                regression_candidate["view_name"] = task_id
+                regression_candidate["view_name"] = regression_count_view
 
                 regression_test_candidates.append(regression_candidate)
 
@@ -198,11 +198,13 @@ def main():
     output_failures_dict = {}
 
     # Regression Tests
-    for regression_pair in regression_test_candidates:
+    for regression_candidate in regression_test_candidates:
         server_url = credentials['server_url']
-        if not test_regression(old_task_id, new_task_id, workflow_name, server_url):
-            print("Regression test failed", old_task_id, new_task_id, workflow_name, server_url)
-            output_failures_dict[new_task_id] = "Regression Failure"
+        if not test_view_counts(regression_candidate["old_task"], \
+            regression_candidate["new_task"], 
+            server_url, regression_candidate["view_name"]):
+            print("Regression test failed", regression_candidate["old_task"], regression_candidate["new_task"], server_url)
+            output_failures_dict[regression_candidate["new_task"]] = "Regression Failure"
 
     # Removing Tasks
     for task_id in task_list:
