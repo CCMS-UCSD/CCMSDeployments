@@ -53,7 +53,7 @@ For production servers {proteomics,gnps}, execute:
 
 ## Testing Workflows
 
-In order to test workflows in a production setting, we have created a utility to do that. Specifically, if a csv file containing test tasks is provided, then they will be run. 
+In order to test workflows in a production setting, we have created a utility to do that. Specificaly, if a csv file containing test tasks is provided, then they will be run. 
 
 The required column headers is:
 
