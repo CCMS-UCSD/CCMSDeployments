@@ -101,7 +101,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(description='Run tests in batch mode')
-    parser.add_argument('--credentials_file', help="Credentials JSON to log on")
+    parser.add_argument('--credentials_file', default=None, help="Credentials JSON to log on")
     parser.add_argument('--wait_time', default=3600, type=int, help="Seconds to wait for completion")
     parser.add_argument('--workflow_json', nargs="+", help="Set of json files to test")
     parser.add_argument('--workflow_task', nargs="+", help="Set of workflow tasks to test")
@@ -110,8 +110,14 @@ def main():
 
     wait_time = args.wait_time
 
-    credentials_file = args.credentials_file
-    credentials = json.loads(open(credentials_file).read())
+    if args.credentials_file is not None:
+        credentials_file = args.credentials_file
+        credentials = json.loads(open(credentials_file).read())
+    else:
+        credentials = {}
+        credentials["server_url"] = ""
+        credentials["username"] = ""
+        credentials["password"] = ""
 
     regression_test_candidates = []
 
