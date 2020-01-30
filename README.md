@@ -51,21 +51,4 @@ For production servers {proteomics,gnps}, execute:
 
 ```fab2 -H <username>@<server>.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password deploy-all --config fabric-production-<server>.yml```
 
-## Testing Workflows
-
-In order to test workflows in a production setting, we have created a utility to do that. Specificaly, if a csv file containing test tasks is provided, then they will be run. 
-
-The required column headers is:
-
-1. test_id - this is the proteosafe task id to clone
-1. description - this is the description to be human readable
-1. regressioncountviews - this is the set of semicolon separated views that we will check for the total number of rows to be present
-
-An example can be found [here](fast_test_workflow/test-integration-workflow/test_tasks.tsv). 
-
-Additionally, we have integrated this utility into github actions but can be called manually in this fashion:
-
-```python ./submit_test_job_batch.py --credential_username <username> --credential_password <password> --workflow_task_file ../fast_test_workflow/test-integration-workflow/test_tasks.tsv```
-
-where the utility can be found in testing-utilities. 
 
