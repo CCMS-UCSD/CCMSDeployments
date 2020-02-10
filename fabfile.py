@@ -61,7 +61,7 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow
     if force_update_string != 'yes':
         server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
         workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper()}))
-        print("And default version :\n\n{}\n\n".format(workflow_name, workflow_url))
+        print("And default version :\n\n{}\n\n".format(workflow_url))
         
 @task
 def read_workflows_from_yml(c):
