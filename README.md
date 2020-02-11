@@ -6,7 +6,7 @@ These are the utility scripts/make files to get a deployment working for CCMS wo
 
 1. Create a new repository to hold your workflows (e.g. GNPS_Workflows or Proteomics_Workflows).
 1. Import CCMSDeployments as a submodule (git submodule add https://github.com/CCMS-UCSD/CCMSDeployments.git)
-1. Link the following files into the root folder: fabfile.py, Makefile.deploytemplate and create yml files similar to the following for each server (or just copy from fabric-production-gnps.yml, fabric-production-proteomics.yml, fabric.yml as examples)
+1. Link the following files into the root folder: fabfile.py, Makefile.deploytemplate, workflow_validator.py and create yml files similar to the following for each server (or just copy from fabric-production-gnps.yml, fabric-production-proteomics.yml, fabric.yml as examples)
 
  ```
 debug: true    # leave this alone
@@ -50,3 +50,5 @@ For proteomics2 (using the default configuration), execute:
 For production servers {proteomics,gnps}, execute:
 
 ```fab2 -H <username>@<server>.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password deploy-all --config fabric-production-<server>.yml```
+
+
