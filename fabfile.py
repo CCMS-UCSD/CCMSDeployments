@@ -57,12 +57,12 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow
     server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
     workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper(), "workflow_version":workflow_version}))
     print("SUCCESS:\n\n{} updated at with version:\n\n{}\n\n".format(workflow_name, workflow_url))
-    
+
     if force_update_string != 'yes':
         server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
         workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper()}))
         print("And default version :\n\n{}\n\n".format(workflow_url))
-        
+
 @task
 def read_workflows_from_yml(c):
     workflows_to_deploy = []
@@ -314,7 +314,7 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
                     <hr style="margin-top:5px;margin-bottom:5px"> \
                     {} \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
-                    <small>Version {} </small> \
+                    <small>Workflow version {} </small> \
                     </div>'.format(workflow_label if workflow_label else workflow_name.upper(), workflow_description, workflow_version)
 
     elif component in ['flow.xml']:
@@ -360,6 +360,8 @@ def update_file(c, local_path, final_path, production_user = None):
         remote_temp_path = os.path.join("/tmp/{}_{}".format(local_path.replace("/", "_"), str(uuid.uuid4())))
         c.put(local_path, remote_temp_path, preserve_mode=True)
         c.sudo('cp {} {}'.format(remote_temp_path, final_path), user=production_user, pty=True)
+        if os.path.split(os.path.normpath(remote_temp_path))[0] == '/tmp':
+            c.run('rm {}'.format(remote_temp_path))
     else:
         c.put(local_path, final_path, preserve_mode=True)
 
@@ -382,3 +384,8 @@ def update_folder(c, local_path, final_path, production_user = None):
         c.sudo('rsync -rlptD {}/ {}'.format(remote_temp_path, final_path), user=production_user, pty=True)
     else:
         c.run('rsync -rlptD {}/ {}'.format(remote_temp_path, final_path))
+
+    if os.path.split(os.path.normpath(remote_temp_path))[0] == '/tmp':
+        c.run('rm -rf {}'.format(remote_temp_path))
+    if os.path.split(os.path.normpath(remote_temp_tar_path))[0] == '/tmp':
+        c.run('rm {}'.format(remote_temp_tar_path))
