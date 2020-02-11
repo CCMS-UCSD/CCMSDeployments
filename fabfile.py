@@ -310,7 +310,7 @@ def rewrite_workflow_component(component, base_dir, workflow_name, tool_name, wo
                     <hr style="margin-top:5px;margin-bottom:5px"> \
                     {} \
                     <hr style="margin-top:5px;margin-bottom:5px"> \
-                    <small>Version {} </small> \
+                    <small>Workflow version {} </small> \
                     </div>'.format(workflow_label if workflow_label else workflow_name.upper(), workflow_description, workflow_version)
 
     elif component in ['flow.xml']:
