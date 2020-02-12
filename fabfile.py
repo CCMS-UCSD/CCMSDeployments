@@ -47,7 +47,7 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow
 
     branch_name = read_branch(c, base_dir)
     if branch_name and not production:
-        workflow_version = '{}@{}'.format(branch_name.replace(' ','_'), workflow_version)
+        workflow_version = '{}@{}'.format(workflow_version, branch_name.replace(' ','_'))
 
     if workflow_name:
         update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_label, workflow_description, base_dir=base_dir, subcomponents=subcomponents, force_update_string=force_update_string)
@@ -58,7 +58,7 @@ def update_all(c, workflow_version, workflow_name=None, tool_name=None, workflow
     workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper(), "workflow_version":workflow_version}))
     print("SUCCESS:\n\n{} updated at with version:\n\n{}\n\n".format(workflow_name, workflow_url))
 
-    if force_update_string != 'yes':
+    if force_update_string == 'yes':
         server_url_base = "https://{}/ProteoSAFe/index.jsp?params=".format(c.host)
         workflow_url = server_url_base + urllib.parse.quote(json.dumps({"workflow":workflow_name.upper()}))
         print("And default version :\n\n{}\n\n".format(workflow_url))
