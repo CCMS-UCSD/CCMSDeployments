@@ -13,7 +13,7 @@ deploy-internal:
 	fab2 -H ${USERNAME}@ccms-internal.ucsd.edu --prompt-for-login-password \
 	update-all ${INPUT_PARAMS} --force-update-string no
 
-#Deploys to Proteomics2 and updates default workflow
+#Deploys to ccms-internal and updates default workflow
 deploy-internal-update:
 	fab2 -H ${USERNAME}@ccms-internal.ucsd.edu --prompt-for-login-password \
 	update-all ${INPUT_PARAMS}
