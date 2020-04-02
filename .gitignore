@@ -106,3 +106,4 @@ venv.bak/
 # user credentials
 Makefile.credentials
 /.project
+/.pydevproject
