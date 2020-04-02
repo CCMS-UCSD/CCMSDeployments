@@ -8,6 +8,16 @@ DESCRIPTION_INPUT = $(if $(WORKFLOW_DESCRIPTION),--workflow-description $(WORKFL
 
 INPUT_PARAMS = ${VERSION_INPUT} ${WORKFLOW_INPUT} ${TOOL_INPUT} ${LABEL_INPUT} ${DESCRIPTION_INPUT}
 
+#Deploys to ccms-internal without deploying default workflow
+deploy-internal:
+	fab2 -H ${USERNAME}@ccms-internal.ucsd.edu --prompt-for-login-password \
+	update-all ${INPUT_PARAMS} --force-update-string no
+
+#Deploys to Proteomics2 and updates default workflow
+deploy-internal-update:
+	fab2 -H ${USERNAME}@ccms-internal.ucsd.edu --prompt-for-login-password \
+	update-all ${INPUT_PARAMS}
+
 #Deploys to Proteomics2 without deploying default workflow
 deploy-debug:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
