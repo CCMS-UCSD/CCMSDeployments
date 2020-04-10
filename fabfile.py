@@ -117,11 +117,14 @@ def read_all_tools(base_dir = '.'):
     all_submodules = glob.glob(os.path.join(base_dir, '*'))
     for submodule in all_submodules:
         if 'CCMSDeployments' not in submodule and os.path.isdir(submodule):
-            submodule_params = read_makefile(submodule)
-            tool_name = submodule_params.get("TOOL_FOLDER_NAME")
-            version = submodule_params["WORKFLOW_VERSION"]
-            if tool_name:
-                all_tools[tool_name] = (version, submodule)
+            try:
+                submodule_params = read_makefile(submodule)
+                tool_name = submodule_params.get("TOOL_FOLDER_NAME")
+                version = submodule_params["WORKFLOW_VERSION"]
+                if tool_name:
+                    all_tools[tool_name] = (version, submodule)
+            except:
+                pass
     return all_tools
 
 @task
@@ -190,6 +193,8 @@ def output_updates(c, workflow_name = None, tool_name = None, base_dir = '.', to
                     # else:
                     #     status += deployed_str
 
+                    status += deployed_str
+
                     outputs.append((update or deployed,"\t{} {}".format(dependency, status)))
                 else:
                     outputs.append((update or deployed,"\t{} untracked".format(dependency)))
@@ -217,7 +222,8 @@ def output_tool_dependencies(workflow_name, base_dir = '.'):
             split_full_path = path.attrib['base'].split('/')
             tool_name = split_full_path[0]
             if len(split_full_path) >= 2:
-                tool_version = split_full_path[1]
+                tool_name = '/'.join(split_full_path[0:-1])
+                tool_version = split_full_path[-1]
             else:
                 tool_version = "NV"
             dependencies.append((tool_name, tool_version))
