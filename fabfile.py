@@ -28,8 +28,8 @@ def read_makefile(workflow_name):
     with open(makefile_location) as f:
         for l in f:
             split_line = l.rstrip().split('=')
-            if len(split_line) >= 2:
-                params[split_line[0]] = '='.join(split_line[1:])
+            if len(split_line) == 2:
+                params[split_line[0]] = split_line[1]
     params['LAST_UPDATED'] = time.ctime(os.path.getmtime(makefile_location))
     return params
 
