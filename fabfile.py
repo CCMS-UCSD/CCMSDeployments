@@ -369,7 +369,10 @@ def update_file(c, local_path, final_path, production_user = None):
         if os.path.split(os.path.normpath(remote_temp_path))[0] == '/tmp':
             c.run('rm {}'.format(remote_temp_path))
     else:
-        c.put(local_path, final_path, preserve_mode=True)
+        try:
+            c.put(local_path, final_path, preserve_mode=True)
+        except:
+            c.put(local_path, final_path, preserve_mode=False)
 
 #TODO: update this to work with rsync
 def update_folder(c, local_path, final_path, production_user = None):
