@@ -58,3 +58,8 @@ view-dependencies:
 update-dependencies:
 	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
 	read-dependencies ${WORKFLOW_INPUT} --rewrite-string yes
+
+#Create README
+deploy-update-readme:
+	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	release-text ${WORKFLOW_INPUT}
