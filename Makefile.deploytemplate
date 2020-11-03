@@ -48,6 +48,15 @@ deploy-production-proteomics-pre:
 	fab2 -H ${USERNAME}@proteomics.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
 	update-all ${INPUT_PARAMS} --config ../fabric-production-proteomics.yml --force-update-string no
 
+#Deploys to MassIVE and updates default workflow
+deploy-production-massive:
+	fab2 -H ${USERNAME}@massive.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
+	update-all ${INPUT_PARAMS} --config ../fabric-production-massive.yml
+
+#Deploys to MassIVE without deploying default workflow
+deploy-production-massive-pre:
+	fab2 -H ${USERNAME}@massive.ucsd.edu --prompt-for-login-password --prompt-for-sudo-password \
+	update-all ${INPUT_PARAMS} --config ../fabric-production-massive.yml --force-update-string no
 
 #Update and view dependencies
 
