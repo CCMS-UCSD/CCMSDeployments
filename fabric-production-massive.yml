@@ -1,0 +1,13 @@
+debug: true
+run:
+  warn: true
+  echo: true
+production:
+  tool_user: ccms
+  workflow_user: ccms
+  user: ccms
+workflows:
+  - fast_test_workflow
+paths:
+  tools: /data/cluster/tools
+  workflows: /ccms/workflows
