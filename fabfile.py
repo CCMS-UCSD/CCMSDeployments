@@ -77,7 +77,7 @@ def read_branch(c, workflow_name):
     with io.StringIO() as f:
         c.local('cd {} && git branch | grep \*'.format(workflow_name), out_stream = f)
         branch = f.getvalue().replace('\n','').replace('* ','')
-        if not ('HEAD detached' in branch or 'master' in branch):
+        if not ('HEAD detached' in branch or 'master' in branch or 'main' in branch):
             branch_name = branch
     return branch_name
 
