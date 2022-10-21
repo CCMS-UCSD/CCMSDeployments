@@ -8,5 +8,5 @@ workflows:
     - input.xml
   - fast_test_tools
 paths:
-  tools: /data/cluster/tools
-  workflows: /ccms/workflows
+  tools: /data/beta-proteomics2/tools
+  workflows: /data/ccms-data/workflows

@@ -20,12 +20,12 @@ deploy-internal-update:
 
 #Deploys to Proteomics2 without deploying default workflow
 deploy-debug:
-	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	fab2 -H ${USERNAME}@ccms-login-temp.ucsd.edu --prompt-for-login-password \
 	update-all ${INPUT_PARAMS} --force-update-string no
 
 #Deploys to Proteomics2 and updates default workflow
 deploy-debug-update:
-	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	fab2 -H ${USERNAME}@ccms-login-temp.ucsd.edu --prompt-for-login-password \
 	update-all ${INPUT_PARAMS}
 
 #Deploys to GNPS and updates default workflow
@@ -61,14 +61,14 @@ deploy-production-massive-pre:
 #Update and view dependencies
 
 view-dependencies:
-	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	fab2 -H ${USERNAME}@ccms-login-temp.ucsd.edu --prompt-for-login-password \
 	read-dependencies ${WORKFLOW_INPUT}
 
 update-dependencies:
-	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	fab2 -H ${USERNAME}@ccms-login-temp.ucsd.edu --prompt-for-login-password \
 	read-dependencies ${WORKFLOW_INPUT} --rewrite-string yes
 
 #Create README
 deploy-update-readme:
-	fab2 -H ${USERNAME}@proteomics2.ucsd.edu --prompt-for-login-password \
+	fab2 -H ${USERNAME}@ccms-login-temp.ucsd.edu --prompt-for-login-password \
 	release-text ${WORKFLOW_INPUT}

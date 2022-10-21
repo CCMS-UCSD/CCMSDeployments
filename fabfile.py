@@ -325,8 +325,8 @@ def update_workflow_xml(c, workflow_name, tool_name, workflow_version, workflow_
             update_workflow_component(c, local_temp_path, workflow_name, component, production_user=production_user) #Adding to active default version
         update_workflow_component(c, local_temp_path, workflow_name, component, workflow_version=workflow_version, production_user=production_user) #Explicitly adding versioned
 
-    if not production_user:
-        c.run("chmod -R 777 {}".format(os.path.join(c["paths"]["workflows"], workflow_name)))
+    # if not production_user:
+    #     c.run("chmod -R 777 {}".format(os.path.join(c["paths"]["workflows"], workflow_name)))
 
 
 #Uploading the actual tools to the server
@@ -346,8 +346,8 @@ def update_tools(c, workflow_name, workflow_version, base_dir="."):
 
     update_folder(c, local_path, final_path, production_user=production_user)
 
-    if not production_user:
-        c.run("chmod -R 777 {}".format(os.path.join(c["paths"]["tools"],workflow_name)))
+    # if not production_user:
+    #     c.run("chmod -R 777 {}".format(os.path.join(c["paths"]["tools"],workflow_name)))
 
 
 #Utility Functions
